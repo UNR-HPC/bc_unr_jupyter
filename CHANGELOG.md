@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.21.4-unr] - 2021-10-12
+
+### Added
+
+- Changed templates to work on Pronghorn.
+
 ## [0.21.3] - 2021-08-27
 
 ### Added

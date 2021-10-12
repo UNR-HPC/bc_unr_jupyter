@@ -1,301 +1,42 @@
-<%-
-  groups = OodSupport::User.new.groups.sort_by(&:id).tap { |groups|
-    groups.unshift(groups.delete(OodSupport::Process.group))
-  }.map(&:name).grep(/^P./)
--%>
 ---
 cluster:
-  - "owens"
-  - "pitzer"
-  - "kubernetes"
-  - "kubernetes-test"
-  - "kubernetes-dev"
+  - "pronghorn"
 form:
-  - account
-  - jupyterlab_switch
+  - bc_num_slots
+  - bc_account
+  - bc_queue
   - bc_num_hours
-  - node_type
-  - cuda_version
   - num_cores
   - version
-  - bc_email_on_started
-  - classroom
+  - cuda_version
+  - email
 attributes:
-  jupyterlab_switch:
-    widget: "check_box"
-    label: "Use JupyterLab instead of Jupyter Notebook?"
-    help: |
-      JupyterLab is the next generation of Jupyter, and is completely compatible with existing Jupyter Notebooks.
+  bc_num_slots: 1
   num_cores:
     widget: "number_field"
     label: "Number of cores"
     value: 1
     help: |
-      Number of cores on node type (4 GB per core unless requesting whole
+      Number of cores on node type (8 GB per core unless requesting whole
       node). Leave blank if requesting full node.
     min: 1
     max: 28
     step: 1
-  account:
-    label: "Project"
-    widget: select
+  version:
+    widget: "select"
+    label: "JupyterLab Version"
     options:
-      <%- groups.each do |group| %>
-      - "<%= group %>"
-      <%- end %>
+      - [ "3.1.18",  "jupyter/3.1.18" ]
+  classroom: 0
   cuda_version:
     widget: "select"
     label: "CUDA Version"
     help: |
       CUDA is Nvidia's GPU-specific parallel computing framework. A GPU node
-      is required to make use of this functionality.
+      is required to make use of this functionality. NOTE: GPU nodes are currently
+      not allocated to the ondemand partition.
     options:
       - [ 
-          "cuda/8.0.44",    "cuda/8.0.44",
-          data-option-for-owens: true,
-          data-option-for-pitzer: false,
-          data-option-for-kubernetes: false,
-          data-option-for-kubernetes-test: false,
-          data-option-for-kubernetes-dev: false  
+          "cuda/11.2",    "cuda/11.2",
+          data-option-for-pronghorn: true,
         ]
-      - [ 
-          "cuda/8.0.61",    "cuda/8.0.61",
-          data-option-for-owens: true,
-          data-option-for-pitzer: false,
-          data-option-for-kubernetes: false,
-          data-option-for-kubernetes-test: false,
-          data-option-for-kubernetes-dev: false
-        ]
-      - [ 
-          "cuda/9.0.176",   "cuda/9.0.176",
-          data-option-for-owens: true,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: true,
-          data-option-for-kubernetes-test: true,
-          data-option-for-kubernetes-dev: true
-        ]
-      - [ 
-          "cuda/9.1.85",    "cuda/9.1.85",
-          data-option-for-owens: true,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: true,
-          data-option-for-kubernetes-test: true,
-          data-option-for-kubernetes-dev: true
-        ]
-      - [ 
-          "cuda/9.2.88",    "cuda/9.2.88",
-          data-option-for-owens: true,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: true,
-          data-option-for-kubernetes-test: true,
-          data-option-for-kubernetes-dev: true
-        ]
-      - [ 
-          "cuda/10.0.130",  "cuda/10.0.130",
-          data-option-for-owens: true,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: true,
-          data-option-for-kubernetes-test: true,
-          data-option-for-kubernetes-dev: true
-        ]
-      - [ 
-          "cuda/10.1.168",  "cuda/10.1.168",
-          data-option-for-owens: true,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: true,
-          data-option-for-kubernetes-test: true,
-          data-option-for-kubernetes-dev: true
-        ]
-      - [
-          "cuda/10.2.89",   "cuda/10.2.89",
-          data-option-for-owens: true,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: true,
-          data-option-for-kubernetes-test: true,
-          data-option-for-kubernetes-dev: true
-        ]
-  node_type:
-    widget: select
-    label: "Node type"
-    help: |
-      - **Standard Compute** <br>
-        These are standard HPC machines. Owens has 648 of these nodes with 40
-        cores and 128 GB of memory. Pitzer has 224 with 40 cores and
-        340 with 48. All pitzer nodes have 192 GB of RAM. Chosing any will decrease
-        your wait time.
-      - **GPU Enabled** <br>
-        These are HPC machines GPUs. Owens has 160 nodes with 1 [NVIDIA Tesla P100 GPU]
-        on Owens and Pitzer has 74 with 2 [NVIDIA Tesla V100 GPUs]. They have the same
-        CPU and memory characteristics of standard compute. Though Pitzer's 40 core machines
-        have 2 GPUs with 16 GB of RAM and 48 core machines have 2with 32 GB of RAM.
-        Densegpu types have 4 GPUs with 16 GB of RAM.
-      - **Large Memory** <br>
-        These are HPC machines with very large amounts of memory. Owens has 16 hugemem
-        with 48 cores and 1.5 TB of RAM. Pitzer has 4 with 3 TB of RAM and 80 cores.
-        Pitzer also has 12 Largmem nodes have 48 cores with 768 GB of RAM.
-
-      [NVIDIA Tesla P100 GPU]: http://www.nvidia.com/object/tesla-p100.html
-      [NVIDIA Tesla V100 GPUs]: https://www.nvidia.com/en-us/data-center/v100/
-    options:
-      - [
-          "any",     "any",
-          data-min-ppn-owens: 1,
-          data-max-ppn-owens: 28,
-          data-min-ppn-pitzer: 1,
-          data-max-ppn-pitzer: 48,
-          data-option-for-owens: true,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: false,
-          data-option-for-kubernetes-test: false,
-          data-option-for-kubernetes-dev: false
-        ]
-      - [
-          "40 core",     "any-40core",
-          data-min-ppn-pitzer: 1,
-          data-max-ppn-pitzer: 40,
-          data-option-for-owens: false,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: false,
-          data-option-for-kubernetes-test: false,
-          data-option-for-kubernetes-dev: false
-        ]
-      - [
-          "48 core",     "any-48core",
-          data-min-ppn-pitzer: 1,
-          data-max-ppn-pitzer: 48,
-          data-option-for-owens: false,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: false,
-          data-option-for-kubernetes-test: false,
-          data-option-for-kubernetes-dev: false
-        ]
-      - [
-          "any gpu",     "gpu",
-          data-min-ppn-owens: 1,
-          data-max-ppn-owens: 28,
-          data-min-ppn-pitzer: 1,
-          data-max-ppn-pitzer: 48,
-          data-option-for-owens: true,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: false,
-          data-option-for-kubernetes-test: false,
-          data-option-for-kubernetes-dev: false
-        ]
-      - [
-          "40 core gpu",     "gpu-40core",
-          data-min-ppn-pitzer: 1,
-          data-max-ppn-pitzer: 40,
-          data-option-for-owens: false,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: false,
-          data-option-for-kubernetes-test: false,
-          data-option-for-kubernetes-dev: false
-        ]
-      - [
-          "48 core gpu",     "gpu-48core",
-          data-min-ppn-pitzer: 1,
-          data-max-ppn-pitzer: 48,
-          data-option-for-owens: false,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: false,
-          data-option-for-kubernetes-test: false,
-          data-option-for-kubernetes-dev: false
-        ]
-      - [
-          "largemem", "largemem",
-          data-min-ppn-pitzer: 48,
-          data-max-ppn-pitzer: 48,
-          data-option-for-owens: false,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: false,
-          data-option-for-kubernetes-test: false,
-          data-option-for-kubernetes-dev: false
-        ]
-      - [
-          "hugemem", "hugemem",
-          data-min-ppn-owens: 48,
-          data-max-ppn-owens: 48,
-          data-min-ppn-pitzer: 80,
-          data-max-ppn-pitzer: 80,
-          data-option-for-owens: true,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: false,
-          data-option-for-kubernetes-test: false,
-          data-option-for-kubernetes-dev: false
-        ]
-      - [
-          "debug",   "debug",
-          data-min-ppn-owens: 1,
-          data-max-ppn-owens: 28,
-          data-min-ppn-pitzer: 1,
-          data-max-ppn-pitzer: 48,
-          data-option-for-owens: true,
-          data-option-for-pitzer: true,
-          data-option-for-kubernetes: false,
-          data-option-for-kubernetes-test: false,
-          data-option-for-kubernetes-dev: false
-        ]
-      - [
-          "pitzer",   "pitzer",
-          data-min-ppn-kubernetes: 1,
-          data-max-ppn-kubernetes: 10,
-          data-min-ppn-kubernetes-test: 1,
-          data-max-ppn-kubernetes-test: 10,
-          data-min-ppn-kubernetes-dev: 1,
-          data-max-ppn-kubernetes-dev: 6,
-          data-option-for-owens: false,
-          data-option-for-pitzer: false,
-          data-option-for-kubernetes: true,
-          data-option-for-kubernetes-test: true,
-          data-option-for-kubernetes-dev: true
-        ]
-      - [
-          "owens",   "owens",
-          data-min-ppn-kubernetes: 1,
-          data-max-ppn-kubernetes: 10,
-          data-min-ppn-kubernetes-test: 1,
-          data-max-ppn-kubernetes-test: 10,
-          data-min-ppn-kubernetes-dev: 1,
-          data-max-ppn-kubernetes-dev: 6,
-          data-option-for-owens: false,
-          data-option-for-pitzer: false,
-          data-option-for-kubernetes: true,
-          data-option-for-kubernetes-test: true,
-          data-option-for-kubernetes-dev: true
-        ]
-      - [
-          "pitzer gpu",   "pitzer-gpu",
-          data-min-ppn-kubernetes: 1,
-          data-max-ppn-kubernetes: 10,
-          data-min-ppn-kubernetes-test: 1,
-          data-max-ppn-kubernetes-test: 10,
-          data-min-ppn-kubernetes-dev: 1,
-          data-max-ppn-kubernetes-dev: 6,
-          data-option-for-owens: false,
-          data-option-for-pitzer: false,
-          data-option-for-kubernetes: true,
-          data-option-for-kubernetes-test: true,
-          data-option-for-kubernetes-dev: true
-        ]
-      - [
-          "owens gpu",   "owens-gpu",
-          data-min-ppn-kubernetes: 1,
-          data-max-ppn-kubernetes: 10,
-          data-min-ppn-kubernetes-test: 1,
-          data-max-ppn-kubernetes-test: 10,
-          data-min-ppn-kubernetes-dev: 1,
-          data-max-ppn-kubernetes-dev: 6,
-          data-option-for-owens: false,
-          data-option-for-pitzer: false,
-          data-option-for-kubernetes: true,
-          data-option-for-kubernetes-test: true,
-          data-option-for-kubernetes-dev: true
-        ]
-  version:
-    widget: "select"
-    label: "JupyterLab Version"
-    options:
-      - [ "3.0",  "app_jupyter/3.0.17" ]
-      - [ "2.2",  "app_jupyter/2.2.10" ]
-      - [ "1.2",  "app_jupyter/1.2.21" ]
-  classroom: 0
